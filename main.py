@@ -1,7 +1,7 @@
 import os
 import logging
 import time
-
+#configure logging
 logging.basicConfig(
     filename='arp-spoof-detector.log',
     level=logging.INFO,
