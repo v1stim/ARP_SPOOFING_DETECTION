@@ -11,6 +11,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
+
 #extract ARP table, should be system agnostic
 def extract_arp_table():
     try:
@@ -42,35 +43,44 @@ def extract_arp_table():
 
 
 def detect_arp_spoof(addresses):
-    mac_addresses_seen_so_far = []
-    logging.info("Starting ARP scan...")
-    for mac in addresses.values():
+    mac_addresses_seen_so_far = {}
+    for ip, mac in addresses.items():
         if mac in mac_addresses_seen_so_far:
-            message = "Possible ARP Spoofing detected. The MAC address is: " + mac
+            message = f"Possible ARP Spoofing detected. MAC: {mac}, IPs: {', '.join(mac_addresses_seen_so_far[mac] + [ip])}"
             logging.warning(message)
-            break
-        mac_addresses_seen_so_far.append(mac)
-
-def main_menu():
-    while True:
-        print("1. Start ARP Spoof Detection")
-        print("2. Change interval")
-        print("3. Stop ARP Spoof Detection")
-        choice = input("Enter your choice: ")
-
-        if choice == '1':
-            interval = int(input("Enter interval in seconds: "))
-            print("ARP Spoof Detection started...")
-            while True:
-                extract_arp_table()
-                time.sleep(interval)
-        elif choice == '2':
-            interval = int(input("Enter interval in seconds: "))
-        elif choice == '3':
-            print("Stopping ARP Spoof Detection...")
-            break
         else:
-            print("Invalid choice, please try again.")
+            mac_addresses_seen_so_far[mac] = [ip]
+
+#menu with keyboardInterrupt handling and log closing
+def main_menu():
+    interval = 60
+    try:
+        while True:
+            print(f"1. Start ARP Spoof Detection with {interval} sec interval")
+            print("2. Change interval")
+            print("3. Exit")
+            choice = input("Enter your choice: ")
+            if choice == '1':
+                print("ARP Spoof Detection started...")
+                logging.info("Starting ARP scan.")
+                logging.info(f"Scan interval set to {interval}")
+                try:
+                    while True:
+                        extract_arp_table()
+                        time.sleep(interval)
+                except KeyboardInterrupt:
+                    logging.info("KeyboardInterrupt received, stopping ARP Spoof Detection.")
+                    break
+            elif choice == '2':
+                interval = int(input("Enter interval in seconds: "))
+            elif choice == '3':
+                print("Stopping ARP Spoof Detection...")
+                break
+            else:
+                print("Invalid choice, please try again.")
+    finally:
+        logging.shutdown()
+
 
 if __name__ == "__main__":
     main_menu()
