@@ -1,7 +1,9 @@
 import os
 import logging
 import time
-#configure logging
+import platform
+
+# configure logging
 logging.basicConfig(
     filename='arp-spoof-detector.log',
     level=logging.INFO,
@@ -9,10 +11,17 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-
+#extract ARP table, should be system agnostic
 def extract_arp_table():
     try:
-        arp_table = os.popen("arp -a").read()
+        system = platform.system()
+        if system == 'Windows':
+            arp_table = os.popen("arp -a").read()
+        elif system == 'Linux' or system == 'Darwin':
+            arp_table = os.popen("arp -n").read()
+        else:
+            logging.error("Unsupported operating system: " + system)
+            return {}
     except Exception as e:
         logging.error("Failed to extract ARP table: " + str(e))
         return {}
@@ -41,7 +50,7 @@ def detect_arp_spoof(addresses):
             break
         mac_addresses_seen_so_far.append(mac)
 
-
+#run endlessly ? I should have a menu for that
 if __name__ == "__main__":
     while True:
         extract_arp_table()
