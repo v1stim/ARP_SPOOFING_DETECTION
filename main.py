@@ -25,7 +25,8 @@ def extract_arp_table():
     except Exception as e:
         logging.error("Failed to extract ARP table: " + str(e))
         return {}
-
+#take ARP, split in lines, skip broadcast and headers
+#should be changed to use regex?
     arp_table_lines = arp_table.splitlines()
     addresses = {}
     for line in arp_table_lines:
@@ -50,8 +51,26 @@ def detect_arp_spoof(addresses):
             break
         mac_addresses_seen_so_far.append(mac)
 
-#run endlessly ? I should have a menu for that
-if __name__ == "__main__":
+def main_menu():
     while True:
-        extract_arp_table()
-        time.sleep(60)
+        print("1. Start ARP Spoof Detection")
+        print("2. Change interval")
+        print("3. Stop ARP Spoof Detection")
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            interval = int(input("Enter interval in seconds: "))
+            print("ARP Spoof Detection started...")
+            while True:
+                extract_arp_table()
+                time.sleep(interval)
+        elif choice == '2':
+            interval = int(input("Enter interval in seconds: "))
+        elif choice == '3':
+            print("Stopping ARP Spoof Detection...")
+            break
+        else:
+            print("Invalid choice, please try again.")
+
+if __name__ == "__main__":
+    main_menu()
